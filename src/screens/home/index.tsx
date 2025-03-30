@@ -26,6 +26,7 @@ export default function Home() {
     const [result, setResult] = useState<GeneratedResult>();
     const [latexPosition, setLatexPosition] = useState({ x: 10, y: 200 });
     const [latexExpression, setLatexExpression] = useState<Array<string>>([]);
+    const [loading, setIsloading] =useState<boolean>(false);
 
     // const lazyBrush = new LazyBrush({
     //     radius: 10,
@@ -144,7 +145,7 @@ export default function Home() {
 
     const runRoute = async () => {
         const canvas = canvasRef.current;
-    
+        setIsloading(true);
         if (canvas) {
             const response = await axios({
                 method: 'post',
@@ -156,7 +157,11 @@ export default function Home() {
             });
 
             const resp = await response.data;
-            console.log('Response', resp);
+            if (resp){
+                setIsloading(false);
+            }
+            console.log('Response', resp.result);
+        
             resp.data.forEach((data: Response) => {
                 if (data.assign === true) {
                     // dict_of_vars[resp.result] = resp.answer;
@@ -213,13 +218,14 @@ export default function Home() {
                         <ColorSwatch key={swatch} color={swatch} onClick={() => setColor(swatch)} />
                     ))}
                 </Group>
+                
                 <Button
                     onClick={runRoute}
                     className='z-20 bg-black text-white'
                     variant='default'
                     color='white'
                 >
-                    Run
+                  {loading ? "processing...." :  "Run"}
                 </Button>
             </div>
             <canvas
@@ -236,7 +242,7 @@ export default function Home() {
                 <Draggable
                     key={index}
                     defaultPosition={latexPosition}
-                    onStop={(e, data) => setLatexPosition({ x: data.x, y: data.y })}
+                    onStop={(_, data) => setLatexPosition({ x: data.x, y: data.y })}
                 >
                     <div className="absolute p-2 text-white rounded shadow-md">
                         <div className="latex-content">{latex}</div>
